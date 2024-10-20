@@ -1,0 +1,257 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <!-- Left Column: Summary of User Selection -->
+        <div class="col-md-6">
+            <h2 class="subheadings">Your Details</h2>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Occasion</h5>
+                    <p>{{ data.occasion }}</p>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Personal Details</h5>
+                    <p><strong>Gender:</strong> {{ data.gender }}</p>
+                    <p><strong>Age:</strong> {{ data.age }}</p>
+                    <p><strong>Outfit Type:</strong> {{ data.outfit_type }}</p>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Selected Fashion Core</h5>
+                    <p><strong>Core:</strong> {{ data.core }}</p>
+                    {% if data.core in fashion_cores %}
+                    <img src="{{ fashion_cores[data.core].Image }}" class="img-fluid mb-3" alt="{{ data.core }} image">
+                    <p><strong>Aesthetic:</strong> {{ fashion_cores[data.core].Aesthetic }}</p>
+                    <p><strong>Elements:</strong> {{ fashion_cores[data.core].Elements }}</p>
+                    <p><strong>Colors:</strong> {{ fashion_cores[data.core].Colors }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- <a href="{{ url_for('edit_details') }}" class="btn btn-secondary mb-3">Edit Details</a> -->
+        </div>
+
+        <!-- Right Column: Generate Outfits Section -->
+        <div class="col-md-6">
+            <h2 class="subheadings">Generate Outfits</h2>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Outfit Generation</h5>
+                    <p id="outfit_generation_text">Click the button below to generate items based on the information
+                        you've provided.</p>
+                    <button id="generate_outfits_btn" class="btn btn-primary mb-3">Generate Items</button>
+
+                    <!-- Placeholder for generated outfits and selections -->
+                    <div id="outfit_display" class="mt-3">
+                        <p>Outfits will be displayed here...</p>
+                    </div>
+                    <button id="submit_selection_btn" class="btn btn-success" style="display: none;">Generate
+                        Image</button>
+                </div>
+            </div>
+            <!-- New Section for Displaying the Generated Image -->
+            <div class="card mb-4" id="generated_image_section" style="display: none;">
+                <div class="card-body">
+                    <h5 class="card-title">Curated Outfit</h5>
+                    <img id="generated_image" src="" class="img-fluid" alt="Generated Outfit Image">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Spinner Overlay -->
+<div id="loadingOverlay" style="display: none;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("#generate_outfits_btn").click(function () {
+            console.log("Generate Outfits button clicked");
+            showLoading();
+            generateOutfits();
+        });
+
+        $("#submit_selection_btn").click(function () {
+            console.log("Submit button clicked");
+            showLoading();
+            submitSelection();
+        });
+    });
+
+    function showLoading() {
+        $("#loadingOverlay").show();
+    }
+
+    function hideLoading() {
+        $("#loadingOverlay").hide();
+    }
+
+    function generateOutfits() {
+        $.ajax({
+            type: "POST",
+            url: "/generate_outfits",
+            dataType: "json",
+            contentType: "application/json; charset=utf-8",
+            success: function (data) {
+                console.log("Outfits generated:", data);
+                displayOutfits(data);
+                $("#submit_selection_btn").show();
+                hideLoading(); // Hide loading spinner after success
+            },
+            error: function (request, status, error) {
+                console.error("Error generating outfits", error);
+                hideLoading(); // Hide loading spinner on error
+            }
+        });
+    }
+
+    // function displayOutfits(outfits) {
+    //     $("#outfit_display").empty();
+
+    //     if (outfits.top.length > 0) {
+    //         $("#outfit_display").append("<h5>Tops:</h5>");
+    //         outfits.top.forEach(function (item, index) {
+    //             $("#outfit_display").append(`
+    //                 <div>
+    //                     <input type="radio" name="top" value="${item}" id="top_${index}">
+    //                     <label for="top_${index}">${item}</label>
+    //                 </div>
+    //             `);
+    //         });
+    //     }
+
+    //     if (outfits.bottom.length > 0) {
+    //         $("#outfit_display").append("<h5>Bottoms:</h5>");
+    //         outfits.bottom.forEach(function (item, index) {
+    //             $("#outfit_display").append(`
+    //                 <div>
+    //                     <input type="radio" name="bottom" value="${item}" id="bottom_${index}">
+    //                     <label for="bottom_${index}">${item}</label>
+    //                 </div>
+    //             `);
+    //         });
+    //     }
+
+    //     if (outfits.accessory.length > 0) {
+    //         $("#outfit_display").append("<h5>Accessories:</h5>");
+    //         outfits.accessory.forEach(function (item, index) {
+    //             $("#outfit_display").append(`
+    //                 <div>
+    //                     <input type="radio" name="accessory" value="${item}" id="accessory_${index}">
+    //                     <label for="accessory_${index}">${item}</label>
+    //                 </div>
+    //             `);
+    //         });
+    //     }
+    // }
+
+    function displayOutfits(outfits) {
+        $("#outfit_display").empty();
+
+        // Add the instructions
+        $("#outfit_display").append("<p><em>Please select an item from each category and click 'Generate Image' once you are ready.</em></p>");
+        
+        if (outfits.top.length > 0) {
+            $("#outfit_display").append("<h5>Tops:</h5>");
+            outfits.top.forEach(function (item, index) {
+                $("#outfit_display").append(`
+                <div>
+                    <input type="radio" name="top" value="${item}" id="top_${index}">
+                    <label for="top_${index}">${item}</label>
+                </div>
+            `);
+            });
+        }
+
+        if (outfits.bottom.length > 0) {
+            $("#outfit_display").append("<h5>Bottoms:</h5>");
+            outfits.bottom.forEach(function (item, index) {
+                $("#outfit_display").append(`
+                <div>
+                    <input type="radio" name="bottom" value="${item}" id="bottom_${index}">
+                    <label for="bottom_${index}">${item}</label>
+                </div>
+            `);
+            });
+        }
+
+        if (outfits.accessory.length > 0) {
+            $("#outfit_display").append("<h5>Accessories:</h5>");
+            outfits.accessory.forEach(function (item, index) {
+                $("#outfit_display").append(`
+                <div>
+                    <input type="radio" name="accessory" value="${item}" id="accessory_${index}">
+                    <label for="accessory_${index}">${item}</label>
+                </div>
+            `);
+            });
+        }
+    }
+
+    function submitSelection() {
+        const selectedTop = $("input[name='top']:checked").val();
+        const selectedBottom = $("input[name='bottom']:checked").val();
+        const selectedAccessory = $("input[name='accessory']:checked").val();
+
+        if (selectedTop && selectedBottom && selectedAccessory) {
+            const selectedOutfit = {
+                top: selectedTop,
+                bottom: selectedBottom,
+                accessory: selectedAccessory
+            };
+
+            $.ajax({
+                type: "POST",
+                url: "/submit_outfit_selection",
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(selectedOutfit),
+                success: function (response) {
+                    if (response.image_url) {
+                        displayGeneratedImage(response.image_url);
+
+                        // Remove the outfit selection options and display the selected items
+                        $("#outfit_display").html(`
+                            <h5>Your Selected Outfit:</h5>
+                            <p><strong>Top:</strong> ${selectedOutfit.top}</p>
+                            <p><strong>Bottom:</strong> ${selectedOutfit.bottom}</p>
+                            <p><strong>Accessory:</strong> ${selectedOutfit.accessory}</p>
+                        `);
+
+                        $("#generate_outfits_btn").hide();
+                        $("#submit_selection_btn").hide();
+                        $("#outfit_generation_text").hide();
+                    } else {
+                        alert("Failed to generate the image. Please try again.");
+                    }
+                    hideLoading(); // Hide loading spinner after success
+                },
+                error: function (request, status, error) {
+                    console.error("Error submitting outfit selection", error);
+                    hideLoading(); // Hide loading spinner on error
+                }
+            });
+        } else {
+            alert("Please select one item from each category.");
+            hideLoading(); // Hide loading spinner if validation fails
+        }
+    }
+
+    function displayGeneratedImage(imageUrl) {
+        $("#generated_image").attr("src", imageUrl);
+        $("#generated_image_section").show();
+    }
+</script>
+
+{% endblock %}

@@ -1,0 +1,255 @@
+/* Styling for the h1 and p inside the #wardrobe-wizard section */
+#wardrobe-wizard h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #343a40; /* Dark color for the title */
+    margin: 0;
+    text-align: center;
+}
+
+#wardrobe-wizard p {
+    font-size: 1.0rem;
+    color: #6c757d; /* Subtle color for the description */
+    margin-top: 10px;
+    margin-bottom: 0px;
+    text-align: center;
+    font-style: italic;
+}
+
+/* Optional styling for the section background */
+#wardrobe-wizard {
+    padding-top: 20px;
+    text-align: center; /* Center the text */
+    margin: 0 auto; /* Center the whole section horizontally */
+    max-width: 600px; /* Optional: Set a max width for better layout control */
+    
+}
+
+/* Base styles */
+body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #f4f4f6;
+    color: #2d2d2d;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+/* Container setup */
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Card styling */
+.card {
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    background-color: #ffffff;
+}
+
+.card-body {
+    padding: 15px;
+}
+
+/* Headers */
+.subheadings {
+    color: #333;
+    text-align: center;
+    font-weight: bold;
+    font-size: 2rem;
+}
+
+
+h5 {
+    color: #333;
+}
+
+/* Chatbox styling */
+.chatbox {
+    border-radius: 12px;
+    border: 1px solid #e0e0e0;
+    background-color: #ffffff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    padding: 15px;
+    margin-bottom: 30px;
+}
+
+.chat-window {
+    overflow-y: auto;
+    max-height: 600px;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #f9f9f9;
+}
+
+/* Message bubbles */
+.message {
+    margin-bottom: 15px;
+}
+
+.message.system {
+    background-color: #e9ecef;
+    padding: 12px;
+    border-radius: 10px;
+    max-width: 75%;
+}
+
+.message.user {
+    background-color: #d1e7fd;
+    padding: 12px;
+    border-radius: 10px;
+    max-width: 75%;
+    margin-left: auto;
+}
+
+.message-content {
+    font-size: 15px;
+}
+
+/* Input styling */
+textarea, select, input {
+    width: 100%;
+    padding: 10px;
+    font-size: 15px;
+    margin-top: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    background-color: #ffffff;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: border-color 0.2s ease;
+}
+
+textarea:focus, select:focus, input:focus {
+    border-color: #80bdff;
+    outline: none;
+}
+
+/* Button styles */
+button {
+    background-color: #007bff;
+    border: none;
+    color: #ffffff;
+    padding: 12px;
+    font-size: 15px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+    width: 100%;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+button:active {
+    background-color: #004085;
+}
+
+/* Image styling */
+.fashion-core-img {
+    border-radius: 8px;
+    max-width: 40%;
+    height: auto;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Spinner overlay */
+#loadingOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 1000;
+}
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    .message.system, .message.user {
+        font-size: 14px;
+    }
+
+    button {
+        font-size: 14px;
+        padding: 10px;
+    }
+
+    textarea, select, input {
+        font-size: 14px;
+        padding: 8px;
+    }
+}
+
+/* Hide default radio buttons */
+input[type="radio"] {
+    display: none; /* Hide the default radio button */
+}
+
+/* Style labels to look like clickable cards */
+#outfit_display label {
+    display: block;
+    padding: 15px;
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #333;
+    background-color: #f9f9f9;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Add hover effect for better interactivity */
+#outfit_display label:hover {
+    background-color: #007bff;
+    color: #fff;
+    border-color: #007bff;
+}
+
+/* When radio button is selected, change the label appearance */
+input[type="radio"]:checked + label {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+    font-weight: bold;
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+/* Add margin to sections */
+#outfit_display h5 {
+    margin-top: 20px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Add spacing between the sections */
+#outfit_display div {
+    margin-bottom: 15px;
+}
+
+/* Media query to adjust card width for mobile view */
+@media (max-width: 768px) {
+    #outfit_display label {
+        font-size: 14px;
+        padding: 10px;
+    }
+}

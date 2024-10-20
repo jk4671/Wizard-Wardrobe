@@ -1,0 +1,311 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="row">
+    <div id="wardrobe-wizard">
+        <h1>Wardrobe Wizard</h1>
+        <p>Struggling to find the perfect outfit for special occasions or your daily routine?<br><br>
+            Chat with Wardrobe Wizard!</p>
+    </div>
+
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="container mt-5 chatbox">
+            <div class="card shadow-sm chat-window">
+                <div class="card-body">
+                    <div class="chat-messages" id="chat-messages">
+                        <!-- Chat messages will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    var data = {{ data | tojson }};
+    var fashionCores = {{ fashion_cores | tojson }};
+
+    $(document).ready(function () {
+        // Show the initial occasion input section
+        showOccasionInputSection();
+
+        // Function to handle occasion input submission using Enter key
+        $(document).on('keypress', '#occasion_input', function (e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                $("#submit_occasion_btn").click();  // Trigger the submit button click
+            }
+        });
+    });
+
+    // Function to display the occasion input section
+    function showOccasionInputSection() {
+        const occasionInputHTML = `
+            <div class="message system">
+                <div class="message-content">
+                    <p>👋 Hi! What occasion would you like to dress for?</p>
+                </div>
+            </div>
+            <div class="message user" id="occasion-input-section">
+                <div class="message-content">
+                    <textarea id="occasion_input" class="form-control mb-2" rows="6"
+                        placeholder="Example: 2024 New York City Marathon on Sunday, November 3, 2024 in 53° F weather"></textarea>
+                    <button id="submit_occasion_btn" class="btn btn-success w-100 mt-2">Send</button>
+                </div>
+            </div>`;
+
+        $("#chat-messages").html(occasionInputHTML);  // Insert occasion input section
+
+        // Occasion submit button click handler
+        $("#submit_occasion_btn").click(function () {
+            let occasion = $("#occasion_input").val().trim();
+            if (occasion) {
+                submitOccasion(occasion);
+            } else {
+                alert("Please enter an occasion.");
+            }
+        });
+
+        scrollToBottom();  // Scroll to the bottom after adding the occasion input section
+    }
+
+    function submitOccasion(occasion) {
+        $.ajax({
+            type: "POST",
+            url: "/submit_occasion",
+            dataType: "json",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ "occasion": occasion }),
+            success: function () {
+                $("#occasion-input-section").hide();
+                appendMessage("user", occasion);
+                appendMessage("system", "Got it! Now, please provide your personal details.");
+                showPersonalDetails();
+            },
+            error: function () {
+                console.error("Error submitting occasion");
+            }
+        });
+    }
+
+    function showPersonalDetails() {
+        const personalDetailsHTML = `
+            <div class="message user" id="personal-detail">
+                <div class="message-content">
+                    <label for="gender_input" class="form-label">Gender:</label>
+                    <select id="gender_input" class="form-select mb-2">
+                        <option value="Female">Female</option>
+                        <option value="Male">Male</option>
+                        <option value="Non-binary">Non-binary</option>
+                    </select>
+                    <label for="age_input" class="form-label">Age:</label>
+                    <input type="number" id="age_input" class="form-control mb-2" min="0" max="120" placeholder="Enter your age">
+                    <label for="outfit_type_input" class="form-label">Outfit Type:</label>
+                    <select id="outfit_type_input" class="form-select mb-2">
+                        <option value="Athleisure">Athleisure</option>
+                        <option value="High Fashion">High Fashion</option>
+                        <option value="Everyday Clothes">Everyday Clothes</option>
+                        <option value="Semi-Formal">Semi-Formal</option>
+                        <option value="Formal">Formal</option>
+                        <option value="Smart Casual">Smart Casual</option>
+                    </select>
+                    <button id="submit_details_btn" class="btn btn-success w-100 mt-2">Submit Details</button>
+                </div>
+            </div>`;
+
+        $("#chat-messages").append(personalDetailsHTML);
+        scrollToBottom();
+
+        // Add Enter key functionality for personal details inputs
+        $("#age_input, #outfit_type_input").keypress(function (e) {
+            if (e.which === 13) {
+                e.preventDefault();
+                $("#submit_details_btn").click();
+            }
+        });
+
+        $("#submit_details_btn").click(function () {
+            let gender = $("#gender_input").val();
+            let age = $("#age_input").val().trim();
+            let outfitType = $("#outfit_type_input").val();
+
+            if (gender && age && outfitType) {
+                submitDetails(gender, age, outfitType);
+            } else {
+                alert("Please fill out all fields.");
+            }
+        });
+    }
+
+    function submitDetails(gender, age, outfitType) {
+        $.ajax({
+            type: "POST",
+            url: "/submit_details",
+            dataType: "json",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify({ "gender": gender, "age": age, "outfit_type": outfitType }),
+            success: function () {
+                $('#personal-detail').remove();
+                const personalDetailsHTML = `
+                        <p><strong>Gender:</strong> ${gender}</p>
+                        <p><strong>Age:</strong> ${age}</p>
+                        <p><strong>Outfit Type:</strong> ${outfitType}</p>
+                `;
+                appendMessage("user", personalDetailsHTML);
+                appendMessage("system", "Thank you! Please select your fashion core.");
+                showFashionCores();
+            },
+            error: function () {
+                console.error("Error submitting details");
+            }
+        });
+    }
+    function showFashionCores() {
+        if ($("#fashion_cores_buttons_container").length === 0) {
+            let fashionCoreHTML = `
+                <div class="message user" id="fashion_core_selection">
+                    <div class="message-content">
+                        <div id="fashion_cores_buttons_container" class="row"></div>
+                    </div>
+                </div>`;
+            $("#chat-messages").append(fashionCoreHTML);
+        }
+
+        populateFashionCoreButtons();
+        scrollToBottom();
+    }
+
+    function populateFashionCoreButtons() {
+        $("#fashion_cores_buttons_container").empty();
+        $.each(fashionCores, function (key) {
+            let button = `
+                <div class="col-md-4 mb-3">
+                    <button class="btn btn-info select-core-btn w-100" data-core="${key}">${key}</button>
+                </div>`;
+            $("#fashion_cores_buttons_container").append(button);
+        });
+
+        $(".select-core-btn").click(function () {
+            let selectedCore = $(this).data("core");
+
+            $.ajax({
+                type: "POST",
+                url: "/select_core",
+                contentType: "application/json",
+                data: JSON.stringify({ core: selectedCore }),
+                success: function (response) {
+                    // If the server responds successfully, show the fashion core details
+                    showFashionCoreDetails(selectedCore);
+                },
+                error: function () {
+                    console.error("Error selecting core");
+                }
+            });
+        });
+        scrollToBottom();
+    }
+
+    function showFashionCoreDetails(coreKey) {
+        let selectedCore = fashionCores[coreKey];
+        const coreDetailsHTML = `
+            <div class="message user" id="fashion_core_details">
+                <div class="message-content">
+                    <p>I want <strong> ${coreKey}</strong></p>
+                </div>
+            </div>
+            <div class="message system" id="fashion_core_details">
+                <div class="message-content">
+                    <p>This is ${coreKey}</p>
+                    <img src="${selectedCore.Image}" class="img-fluid mb-2 fashion-core-img" alt="${coreKey} image">
+                    <p><strong>Aesthetic:</strong> ${selectedCore.Aesthetic}</p>
+                    <p><strong>Elements:</strong> ${selectedCore.Elements}</p>
+                    <p><strong>Colors:</strong> ${selectedCore.Colors}</p>
+                </div>
+            </div>
+            <div class="message system" id="happy-selection">
+                <div class="message-content">
+                    <p>Are you happy with this selection?</p>
+                </div>
+            </div>
+            <div class="message user" id="core-confirm">
+                <div class="message-content">
+                    <button class="btn btn-success confirm-core-btn w-100 mb-2" id="confirm-core-btn" data-core="${coreKey}">Yes, I like this</button>
+                    <button class="btn btn-danger reselect-core-btn w-100" data-core="${coreKey}">No, let me choose another</button>
+                </div>
+            </div>`;
+
+        $("#fashion_core_selection").remove();
+        $("#chat-messages").append(coreDetailsHTML);
+        scrollToBottom();
+
+        $(".confirm-core-btn").click(function () {
+            $("#core-confirm").remove();
+            $("#happy-selection").remove();
+            $("#fashion_core_details").remove();
+
+
+            appendMessage("user", "Yes, I like this")
+            showConfirmationButtons(coreKey);
+        });
+
+        $(".reselect-core-btn").click(function () {
+            $("#core-confirm").remove();
+            $("#fashion_core_details").remove();
+
+            appendMessage("user", "No, let me choose another");
+            appendMessage("system", "Alright, please reselect your fashion core.");
+            showFashionCores();
+        });
+    }
+
+
+
+    function showConfirmationButtons(coreKey) {
+        $("#fashion_core_details").remove();
+        const confirmButtonHTML = `
+            <div class="message system">
+                <div class="message-content">
+                    <p>Do you want to generate the outfit based on this selection?</p>
+                </div>
+            </div>
+            <div class="message user">
+                <div class="message-content">
+                    <button id="confirm_generation_btn" class="btn btn-success confirm-core-btn w-100 mb-2">Yes, generate outfit</button>
+                    <button id="cancel_generation_btn" class="btn btn-danger reselect-core-btn w-100 mb-2">No, restart the chat</button>
+                </div>
+            </div>`;
+
+        $("#chat-messages").append(confirmButtonHTML);
+        scrollToBottom();
+
+        $("#confirm_generation_btn").click(function () {
+            window.location.href = "/summary";
+        });
+
+        $("#cancel_generation_btn").click(function () {
+            $("#confirm_generation_btn").parent().parent().remove();
+            appendMessage("user", "No, let me redo.");
+            showOccasionInputSection();
+
+        });
+    }
+
+    function appendMessage(sender, text) {
+        const message = `<div class="message ${sender}">
+                            <div class="message-content">
+                                <p>${text}</p>
+                            </div>
+                         </div>`;
+        $("#chat-messages").append(message);
+        setTimeout(scrollToBottom, 50);
+    }
+
+    function scrollToBottom() {
+        $(".chat-window").scrollTop($(".chat-window")[0].scrollHeight);
+    }
+</script>
+
+{% endblock %}
